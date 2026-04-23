@@ -1,0 +1,23 @@
+# Week 1: Data Pipeline
+yfinance>=0.2.31
+sec-edgar-downloader>=5.0.0
+pyarrow>=14.0
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Week 2: NLP Signal
+transformers>=4.36.0
+sentence-transformers>=2.2.0
+torch>=2.0.0
+scipy>=1.11.0
+
+# Week 4: Regime Model (uncomment when ready)
+# hmmlearn>=0.3.0
+# scikit-learn>=1.3.0
+# statsmodels>=0.14.0
+
+# Week 7-8: Backtest & Analysis (uncomment when ready)
+# quantstats>=0.0.62
+# matplotlib>=3.8.0
+# seaborn>=0.13.0
+# plotly>=5.18.0

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOSAIC Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06080d; --bg2: #0d1117; --card: #111820; --card-hover: #161f2b;
+  --border: #1b2433; --border-light: #243044;
+  --text: #d4dce8; --text-muted: #6b7d95; --text-dim: #3d4f66;
+  --accent: #2563eb; --accent-glow: rgba(37,99,235,0.12);
+  --green: #10b981; --red: #ef4444; --amber: #eab308; --purple: #7c3aed;
+  --cyan: #06b6d4; --pink: #db2777;
+  --momentum: #2563eb; --options: #7c3aed; --nlp: #06b6d4;
+  --risk-on: #10b981; --transitional: #eab308; --risk-off: #ef4444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--bg2); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); }
+.logo-area { display: flex; align-items: center; gap: 12px; }
+.logo-icon { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #fff; box-shadow: 0 0 24px rgba(37,99,235,0.3); }
+.logo-text { font-weight: 800; font-size: 19px; letter-spacing: -0.5px; }
+.logo-sub { color: var(--text-dim); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+
+/* Nav */
+.nav { display: flex; gap: 2px; background: var(--bg); border-radius: 10px; padding: 3px; }
+.nav-btn { padding: 8px 18px; border: none; cursor: pointer; border-radius: 8px; background: transparent; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; transition: all 0.15s; letter-spacing: 0.3px; white-space: nowrap; }
+.nav-btn:hover { color: var(--text); background: var(--card); }
+.nav-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 16px var(--accent-glow); }
+
+/* Badges */
+.badges { display: flex; gap: 8px; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.badge-blue { background: rgba(37,99,235,0.15); color: var(--accent); border: 1px solid rgba(37,99,235,0.3); }
+.badge-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-purple { background: rgba(124,58,237,0.15); color: var(--purple); border: 1px solid rgba(124,58,237,0.3); }
+
+/* Content */
+.content { padding: 28px; max-width: 1240px; margin: 0 auto; }
+
+/* Cards */
+.card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 22px; margin-bottom: 16px; transition: border-color 0.2s; }
+.card:hover { border-color: var(--border-light); }
+.card-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+
+/* Metric Grid */
+.metric-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.metric-box { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 16px; flex: 1; min-width: 130px; }
+.metric-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.metric-value { font-size: 26px; font-weight: 800; }
+.metric-sub { color: var(--text-dim); font-size: 11px; margin-top: 4px; }
+
+/* Section Title */
+.section-title { font-size: 24px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; }
+.section-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+
+/* Chart Container */
+.chart-box { position: relative; width: 100%; }
+canvas { width: 100% !important; height: auto !important; }
+
+/* Ticker buttons */
+.ticker-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.ticker-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.15s; }
+.ticker-btn:hover { border-color: var(--accent); color: var(--text); }
+.ticker-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Signal filter buttons */
+.filter-row { display: flex; gap: 6px; margin-bottom: 16px; }
+.filter-btn { padding: 5px 16px; border-radius: 20px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; background: transparent; color: var(--text-dim); transition: all 0.15s; letter-spacing: 0.5px; }
+.filter-btn:hover { color: var(--text); }
+.filter-btn.active { background: var(--card); color: var(--text); }
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* Arch boxes */
+.arch-box { background: var(--bg); border-radius: 10px; padding: 16px; }
+.arch-num { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+.arch-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.arch-desc { color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
+.arch-stat { font-size: 11px; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; padding: 10px 14px; color: var(--text-muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.data-table tr:hover { background: var(--card-hover); }
+.val-pos { color: var(--green); font-weight: 700; }
+.val-neg { color: var(--red); font-weight: 700; }
+
+/* Notes */
+.note { padding: 16px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; line-height: 1.7; }
+.note-good { background: rgba(16,185,129,0.08); border-left: 3px solid var(--green); }
+.note-bad { background: rgba(239,68,68,0.08); border-left: 3px solid var(--red); }
+.note-info { background: rgba(37,99,235,0.08); border-left: 3px solid var(--accent); }
+.note b { font-weight: 700; }
+
+/* Footer */
+.footer { border-top: 1px solid var(--border); padding: 18px; text-align: center; color: var(--text-dim); font-size: 11px; }
+
+/* Loading */
+.loading { display: flex; align-items: center; justify-content: center; height: 400px; color: var(--text-muted); font-size: 14px; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.view-container { animation: fadeIn 0.25s ease-out; }
+
+@media (max-width: 800px) {
+  .header { flex-direction: column; gap: 12px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .metric-row { flex-direction: column; }
+  .nav { flex-wrap: wrap; justify-content: center; }
+  .badges { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-area">
+    <div class="logo-icon">M</div>
+    <div>
+      <div class="logo-text">MOSAIC</div>
+      <div class="logo-sub mono">Quant Research System</div>
+    </div>
+  </div>
+  <div class="nav" id="nav"></div>
+  <div class="badges">
+    <span class="badge badge-green mono">2018-2024</span>
+    <span class="badge badge-blue mono">20 Stocks</span>
+    <span class="badge badge-purple mono">3 Signals</span>
+  </div>
+</div>
+
+<div class="content" id="app">
+  <div class="loading mono">Loading MOSAIC data...</div>
+</div>
+
+<div class="footer mono">
+  MOSAIC Research System | Python + FinBERT + HMM + Exponential Gradient Descent | Built from scratch
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let DATA = null;
+let currentView = "overview";
+let currentTicker = "AAPL";
+let currentSignalFilter = "all";
+let charts = {};
+
+const VIEWS = [
+  { id: "overview", label: "Overview", icon: "◈" },
+  { id: "signals", label: "Signals", icon: "◉" },
+  { id: "regime", label: "Regime", icon: "◎" },
+  { id: "portfolio", label: "Portfolio", icon: "◆" },
+  { id: "weights", label: "Weights", icon: "◇" },
+];
+
+const COLORS = {
+  momentum: "#2563eb", options: "#7c3aed", nlp: "#06b6d4",
+  composite: "#eab308", green: "#10b981", red: "#ef4444",
+  amber: "#eab308", text: "#6b7d95", grid: "#1b2433",
+  riskOn: "#10b981", transitional: "#eab308", riskOff: "#ef4444",
+};
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+async function init() {
+  try {
+    const resp = await fetch("dashboard_data.json");
+    DATA = await resp.json();
+  } catch (e) {
+    document.getElementById("app").innerHTML = `
+      <div class="card" style="text-align:center;padding:60px;">
+        <div style="font-size:40px;margin-bottom:16px;">📊</div>
+        <div class="section-title">Data Not Found</div>
+        <p style="color:var(--text-muted);margin:16px 0;max-width:500px;display:inline-block;">
+          Run the export script first to generate dashboard data from your MOSAIC results:
+        </p>
+        <div class="card" style="display:inline-block;text-align:left;margin-top:12px;">
+          <code class="mono" style="color:var(--green);font-size:13px;">
+            cd /Users/maddy/mosiac<br>
+            source .venv/bin/activate<br>
+            python export_dashboard_data.py
+          </code>
+        </div>
+        <p style="color:var(--text-dim);margin-top:16px;font-size:12px;">Then refresh this page.</p>
+      </div>`;
+    return;
+  }
+  buildNav();
+  render();
+}
+
+function buildNav() {
+  const nav = document.getElementById("nav");
+  nav.innerHTML = VIEWS.map(v =>
+    `<button class="nav-btn mono ${v.id === currentView ? 'active' : ''}" onclick="switchView('${v.id}')">${v.icon} ${v.label}</button>`
+  ).join("");
+}
+
+function switchView(id) {
+  currentView = id;
+  destroyCharts();
+  buildNav();
+  render();
+}
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+}
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = `<div class="view-container">${getViewHTML()}</div>`;
+  setTimeout(initCharts, 50);
+}
+
+function getViewHTML() {
+  switch(currentView) {
+    case "overview": return overviewHTML();
+    case "signals": return signalsHTML();
+    case "regime": return regimeHTML();
+    case "portfolio": return portfolioHTML();
+    case "weights": return weightsHTML();
+    default: return "";
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function metric(label, value, color, sub) {
+  return `<div class="metric-box"><div class="metric-label mono">${label}</div><div class="metric-value" style="color:${color || 'var(--text)'}">${value}</div>${sub ? `<div class="metric-sub mono">${sub}</div>` : ""}</div>`;
+}
+
+function m(key, fallback) {
+  if (!DATA || !DATA.metrics) return fallback || "N/A";
+  const s = DATA.metrics.strategy || {};
+  return s[key] !== undefined ? s[key] : fallback || "N/A";
+}
+function b(key, fallback) {
+  if (!DATA || !DATA.metrics) return fallback || "N/A";
+  const s = DATA.metrics.benchmark || {};
+  return s[key] !== undefined ? s[key] : fallback || "N/A";
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIEW: OVERVIEW
+// ══════════════════════════════════════════════════════════════
+function overviewHTML() {
+  const layers = [
+    { n: "1", name: "Data Pipeline", desc: "OHLCV + VIX + SEC + Options", color: "var(--cyan)", stat: "20 tickers, 2011 days" },
+    { n: "2", name: "NLP Signal", desc: "FinBERT tone-shift on 10-Q MD&A", color: "var(--nlp)", stat: "6 tickers, 53 filings" },
+    { n: "3", name: "Options Signal", desc: "IV percentile + P/C anomaly", color: "var(--options)", stat: "IC: 0.009 (5d)" },
+    { n: "4", name: "Momentum + Regime", desc: "12-1 momentum + HMM classifier", color: "var(--momentum)", stat: "3 states detected" },
+    { n: "5", name: "Meta-Allocator", desc: "Exp. Gradient Descent weighting", color: "var(--amber)", stat: "Mom 57% / Opt 35% / NLP 8%" },
+    { n: "6", name: "Risk Manager", desc: "Kelly sizing + circuit breaker", color: "var(--red)", stat: "Max DD limited to -8.6%" },
+  ];
+
+  return `
+    <div class="section-title">System Overview</div>
+    <div class="section-sub mono">Multi-Signal Options-Aware Adaptive Intelligence for Capital Allocation</div>
+    <div class="metric-row">
+      ${metric("Total Return", m("total_return_pct", "-8.6") + "%", "var(--red)", `SPY: +${b("total_return_pct", "146.9")}%`)}
+      ${metric("Sharpe", m("sharpe", "-1.12"), "var(--red)", `SPY: ${b("sharpe", "0.76")}`)}
+      ${metric("Max Drawdown", m("max_drawdown_pct", "-8.6") + "%", "var(--green)", `SPY: ${b("max_drawdown_pct", "-33.7")}%`)}
+      ${metric("Win Rate", m("win_rate_pct", "0.7") + "%", "var(--amber)", `SPY: ${b("win_rate_pct", "55.2")}%`)}
+      ${metric("Volatility", m("annualized_vol_pct", "1.1") + "%", "var(--cyan)", `SPY: ${b("annualized_vol_pct", "19.5")}%`)}
+    </div>
+    <div class="card">
+      <div style="font-weight:700;font-size:16px;margin-bottom:16px;">6-Layer Architecture</div>
+      <div class="grid-3">
+        ${layers.map(l => `
+          <div class="arch-box" style="border:1px solid ${l.color}22;">
+            <div class="arch-num mono" style="background:${l.color}18;color:${l.color};border:1px solid ${l.color}44;">${l.n}</div>
+            <div class="arch-title">${l.name}</div>
+            <div class="arch-desc">${l.desc}</div>
+            <div class="arch-stat mono" style="color:${l.color}">${l.stat}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="note note-good"><b style="color:var(--green);">What Worked:</b> Risk management limited max drawdown to -8.6% vs SPY's -33.7%. Regime model correctly identified crisis periods. Circuit breaker prevented catastrophic losses during COVID and 2022 bear.</div>
+      <div class="note note-bad"><b style="color:var(--red);">Key Limitations:</b> Proxy IV data (not real options), NLP covers only 6/20 tickers due to SEC filing parsing, aggressive -15% liquidation threshold kept portfolio in cash ~75% of the backtest.</div>
+    </div>
+    <div class="note note-info"><b style="color:var(--accent);">Improvements:</b> Real historical IV from CBOE/OptionMetrics, better SEC parser (SEC-API.io), relaxed circuit breaker thresholds, additional signals (earnings surprises, short interest), paper trading validation.</div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIEW: SIGNALS
+// ══════════════════════════════════════════════════════════════
+function signalsHTML() {
+  const tickers = DATA ? DATA.tickers : [];
+  const sectors = DATA ? DATA.sectors : {};
+  const sigData = DATA && DATA.signals ? DATA.signals[currentTicker] : [];
+  const last = sigData && sigData.length > 0 ? sigData[sigData.length - 1] : {};
+
+  return `
+    <div class="section-title">Signal Explorer</div>
+    <div class="section-sub mono">Select a ticker to view its three signal scores and composite over time</div>
+    <div class="ticker-grid">
+      ${tickers.map(t => `<button class="ticker-btn mono ${t === currentTicker ? 'active' : ''}" onclick="selectTicker('${t}')">${t}</button>`).join("")}
+    </div>
+    <div class="filter-row">
+      ${["all","momentum","options","nlp","composite"].map(f => `<button class="filter-btn mono ${f === currentSignalFilter ? 'active' : ''}" onclick="selectFilter('${f}')">${f.toUpperCase()}</button>`).join("")}
+    </div>
+    <div class="metric-row">
+      ${metric("Sector", sectors[currentTicker] || "N/A", "var(--cyan)")}
+      ${metric("Momentum", (last.momentum || 0).toFixed(3), (last.momentum || 0) > 0 ? "var(--green)" : "var(--red)", "Latest value")}
+      ${metric("Options", (last.options || 0).toFixed(3), (last.options || 0) > 0 ? "var(--green)" : "var(--red)", "Latest value")}
+      ${metric("Composite", (last.composite || 0).toFixed(3), "var(--amber)", "Weighted final")}
+    </div>
+    <div class="card">
+      <div class="card-label mono">SIGNAL SCORES: ${currentTicker}</div>
+      <div class="chart-box"><canvas id="chart-signals" height="320"></canvas></div>
+    </div>
+  `;
+}
+
+function selectTicker(t) { currentTicker = t; destroyCharts(); render(); }
+function selectFilter(f) { currentSignalFilter = f; destroyCharts(); render(); }
+
+// ══════════════════════════════════════════════════════════════
+// VIEW: REGIME
+// ══════════════════════════════════════════════════════════════
+function regimeHTML() {
+  const dist = DATA && DATA.regime_dist ? DATA.regime_dist : {};
+  return `
+    <div class="section-title">Regime Timeline</div>
+    <div class="section-sub mono">HMM-classified market regimes based on VIX, term structure, and market breadth</div>
+    <div class="metric-row">
+      ${metric("Risk-On", (dist["0"] ? dist["0"].pct : "?") + "%", "var(--risk-on)", (dist["0"] ? dist["0"].count : "?") + " days")}
+      ${metric("Transitional", (dist["1"] ? dist["1"].pct : "?") + "%", "var(--transitional)", (dist["1"] ? dist["1"].count : "?") + " days")}
+      ${metric("Risk-Off", (dist["2"] ? dist["2"].pct : "?") + "%", "var(--risk-off)", (dist["2"] ? dist["2"].count : "?") + " days")}
+      ${metric("Scalar", "0 / 0.5 / 1.0", "var(--text)", "Scales all signals")}
+    </div>
+    <div class="card">
+      <div class="card-label mono">VIX LEVEL + REGIME STATE</div>
+      <div class="chart-box"><canvas id="chart-regime" height="280"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label mono">MARKET BREADTH (% of stocks above 200-day MA)</div>
+      <div class="chart-box"><canvas id="chart-breadth" height="200"></canvas></div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIEW: PORTFOLIO
+// ══════════════════════════════════════════════════════════════
+function portfolioHTML() {
+  const ps = DATA && DATA.position_stats ? DATA.position_stats : {};
+  const windows = DATA && DATA.windows ? DATA.windows : [];
+  const stress = DATA && DATA.stress ? DATA.stress : [];
+
+  return `
+    <div class="section-title">Portfolio Simulator</div>
+    <div class="section-sub mono">Equity curve, drawdowns, and walk-forward benchmark comparison</div>
+    <div class="metric-row">
+      ${metric("Final Value", "$" + ((DATA && DATA.equity && DATA.equity.length > 0) ? DATA.equity[DATA.equity.length-1].strategy.toLocaleString() : "908K"), "var(--red)", "from $1,000,000")}
+      ${metric("SPY Final", "$" + ((DATA && DATA.equity && DATA.equity.length > 0) ? DATA.equity[DATA.equity.length-1].benchmark.toLocaleString() : "2.47M"), "var(--green)", "from $1,000,000")}
+      ${metric("Max DD", m("max_drawdown_pct", "-8.6") + "%", "var(--green)", `SPY: ${b("max_drawdown_pct", "-33.7")}%`)}
+      ${metric("Active Days", (ps.active_pct || "25") + "%", "var(--amber)", `${ps.active_days || "?"} / ${ps.total_days || "?"}`)}
+    </div>
+    <div class="card">
+      <div class="card-label mono">EQUITY CURVE: MOSAIC vs SPY</div>
+      <div class="chart-box"><canvas id="chart-equity" height="300"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label mono">WALK-FORWARD WINDOWS</div>
+      <div class="chart-box"><canvas id="chart-windows" height="220"></canvas></div>
+    </div>
+    ${stress.length > 0 ? `
+    <div class="card">
+      <div class="card-label mono">STRESS TESTS</div>
+      <table class="data-table"><tr><th>Period</th><th>Days</th><th>Strategy</th><th>SPY</th><th>Result</th></tr>
+      ${stress.map(s => `<tr><td>${s.period}</td><td class="mono">${s.days}</td><td class="mono ${s.strat >= s.bench ? 'val-pos' : 'val-neg'}">${s.strat}%</td><td class="mono">${s.bench}%</td><td>${s.outperformed ? '✓' : '✗'}</td></tr>`).join("")}
+      </table>
+    </div>` : ""}
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIEW: WEIGHTS
+// ══════════════════════════════════════════════════════════════
+function weightsHTML() {
+  const w = DATA && DATA.weights && DATA.weights.length > 0 ? DATA.weights[DATA.weights.length - 1] : {};
+  return `
+    <div class="section-title">Weight Evolution</div>
+    <div class="section-sub mono">How the meta-allocator learned signal weights via Exponential Gradient Descent</div>
+    <div class="metric-row">
+      ${metric("Momentum", ((w.momentum || 0.574) * 100).toFixed(1) + "%", "var(--momentum)", "Dominant signal")}
+      ${metric("Options", ((w.options || 0.346) * 100).toFixed(1) + "%", "var(--options)", "Secondary signal")}
+      ${metric("NLP", ((w.nlp || 0.08) * 100).toFixed(1) + "%", "var(--nlp)", "At minimum floor")}
+      ${metric("Learning Rate", "η = 0.1", "var(--text)", "EGD parameter")}
+    </div>
+    <div class="card">
+      <div class="card-label mono">SIGNAL WEIGHT ALLOCATION OVER TIME</div>
+      <div class="chart-box"><canvas id="chart-weights" height="320"></canvas></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:14px;">How Exponential Gradient Descent Works</div>
+      <div class="grid-4">
+        ${[
+          { n: "1", t: "Start Equal", d: "33% / 33% / 33%" },
+          { n: "2", t: "Measure Sharpe", d: "60-day rolling per signal" },
+          { n: "3", t: "Update Weights", d: "w *= exp(η * sharpe)" },
+          { n: "4", t: "Normalize", d: "Sum to 1, min 10% floor" },
+        ].map(s => `
+          <div class="arch-box" style="text-align:center;">
+            <div style="color:var(--accent);font-weight:800;font-size:22px;">${s.n}</div>
+            <div style="font-weight:700;font-size:13px;margin:4px 0;">${s.t}</div>
+            <div class="mono" style="color:var(--text-muted);font-size:11px;">${s.d}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHART INITIALIZATION
+// ══════════════════════════════════════════════════════════════
+const chartDefaults = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#6b7d95", font: { family: "'IBM Plex Mono'", size: 11 } } } }, scales: { x: { ticks: { color: "#3d4f66", font: { family: "'IBM Plex Mono'", size: 10 }, maxTicksLimit: 10 }, grid: { color: "#1b2433" } }, y: { ticks: { color: "#3d4f66", font: { family: "'IBM Plex Mono'", size: 10 } }, grid: { color: "#1b2433" } } } };
+
+function initCharts() {
+  if (!DATA) return;
+  switch(currentView) {
+    case "signals": initSignalChart(); break;
+    case "regime": initRegimeChart(); initBreadthChart(); break;
+    case "portfolio": initEquityChart(); initWindowsChart(); break;
+    case "weights": initWeightsChart(); break;
+  }
+}
+
+function initSignalChart() {
+  const el = document.getElementById("chart-signals");
+  if (!el || !DATA.signals || !DATA.signals[currentTicker]) return;
+  const d = DATA.signals[currentTicker];
+  const labels = d.map(p => p.date);
+  const datasets = [];
+  const f = currentSignalFilter;
+  if (f === "all" || f === "momentum") datasets.push({ label: "Momentum", data: d.map(p => p.momentum || 0), borderColor: COLORS.momentum, borderWidth: 1.5, pointRadius: 0, tension: 0.3 });
+  if (f === "all" || f === "options") datasets.push({ label: "Options", data: d.map(p => p.options || 0), borderColor: COLORS.options, borderWidth: 1.5, pointRadius: 0, tension: 0.3 });
+  if (f === "all" || f === "nlp") datasets.push({ label: "NLP", data: d.map(p => p.nlp || 0), borderColor: COLORS.nlp, borderWidth: 1.5, pointRadius: 0, tension: 0.3 });
+  if (f === "all" || f === "composite") datasets.push({ label: "Composite", data: d.map(p => p.composite || 0), borderColor: COLORS.composite, borderWidth: 2, pointRadius: 0, tension: 0.3 });
+  charts.signals = new Chart(el, { type: "line", data: { labels, datasets }, options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: -1, max: 1 } }, plugins: { ...chartDefaults.plugins, annotation: {} } } });
+}
+
+function initRegimeChart() {
+  const el = document.getElementById("chart-regime");
+  if (!el || !DATA.regime) return;
+  const d = DATA.regime;
+  charts.regime = new Chart(el, { type: "line", data: {
+    labels: d.map(p => p.date),
+    datasets: [
+      { label: "VIX", data: d.map(p => p.vix), borderColor: COLORS.amber, borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true, backgroundColor: "rgba(234,179,8,0.08)", yAxisID: "y" },
+      { label: "Regime", data: d.map(p => p.regime * 15 + 5), borderColor: COLORS.red, borderWidth: 2, pointRadius: 0, stepped: true, yAxisID: "y" },
+    ]
+  }, options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 85 } } } });
+}
+
+function initBreadthChart() {
+  const el = document.getElementById("chart-breadth");
+  if (!el || !DATA.regime) return;
+  const d = DATA.regime;
+  charts.breadth = new Chart(el, { type: "line", data: {
+    labels: d.map(p => p.date),
+    datasets: [{ label: "Breadth", data: d.map(p => p.breadth), borderColor: COLORS.nlp, borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true, backgroundColor: "rgba(6,182,212,0.08)" }]
+  }, options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 1, ticks: { ...chartDefaults.scales.y.ticks, callback: v => (v * 100).toFixed(0) + "%" } } } } });
+}
+
+function initEquityChart() {
+  const el = document.getElementById("chart-equity");
+  if (!el || !DATA.equity) return;
+  const d = DATA.equity;
+  charts.equity = new Chart(el, { type: "line", data: {
+    labels: d.map(p => p.date),
+    datasets: [
+      { label: "MOSAIC", data: d.map(p => p.strategy), borderColor: COLORS.momentum, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+      { label: "SPY", data: d.map(p => p.benchmark), borderColor: COLORS.green, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+    ]
+  }, options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, callback: v => "$" + (v / 1e6).toFixed(1) + "M" } } } } });
+}
+
+function initWindowsChart() {
+  const el = document.getElementById("chart-windows");
+  if (!el || !DATA.windows) return;
+  const d = DATA.windows;
+  charts.windows = new Chart(el, { type: "bar", data: {
+    labels: d.map(w => w.period),
+    datasets: [
+      { label: "Strategy", data: d.map(w => w.strat), backgroundColor: d.map(w => w.strat >= w.bench ? COLORS.green + "cc" : COLORS.red + "cc"), borderRadius: 4 },
+      { label: "SPY", data: d.map(w => w.bench), backgroundColor: "#3d4f6666", borderRadius: 4 },
+    ]
+  }, options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + "%" } } } } });
+}
+
+function initWeightsChart() {
+  const el = document.getElementById("chart-weights");
+  if (!el || !DATA.weights) return;
+  const d = DATA.weights;
+  charts.weights = new Chart(el, { type: "line", data: {
+    labels: d.map(p => p.date),
+    datasets: [
+      { label: "Momentum", data: d.map(p => p.momentum), borderColor: COLORS.momentum, backgroundColor: COLORS.momentum + "55", borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3 },
+      { label: "Options", data: d.map(p => p.options), borderColor: COLORS.options, backgroundColor: COLORS.options + "55", borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3 },
+      { label: "NLP", data: d.map(p => p.nlp), borderColor: COLORS.nlp, backgroundColor: COLORS.nlp + "55", borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3 },
+    ]
+  }, options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, stacked: true, min: 0, max: 1, ticks: { ...chartDefaults.scales.y.ticks, callback: v => (v * 100).toFixed(0) + "%" } } }, plugins: { ...chartDefaults.plugins, filler: { propagate: true } } } });
+}
+
+// ══════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
