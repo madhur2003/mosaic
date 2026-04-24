@@ -53,3 +53,14 @@ BACKTEST_START = "2018-01-01"
 SEC_USER_AGENT = "MOSAIC Research madhur2k3@gmail.com"  # ← CHANGE THIS
 SEC_FILING_TYPES = ["10-Q", "8-K"]
 SEC_MAX_FILINGS = 20  # per ticker per filing type
+
+# ── Risk Management (TUNED) ──
+KELLY_FRACTION = 0.15          # Reduced from 0.25 (less aggressive sizing)
+MAX_POSITION_PCT = 0.04        # Reduced from 0.05 (smaller individual bets)
+MAX_SECTOR_PCT = 0.20          # Reduced from 0.25
+DRAWDOWN_HALT = -0.20          # Relaxed from -0.10 (give more room)
+DRAWDOWN_LIQUIDATE = -0.30     # Relaxed from -0.15 (was way too tight)
+SLIPPAGE_BPS = 3               # Reduced from 5 (more realistic for liquid stocks)
+COMMISSION_PER_SHARE = 0.003   # Reduced from 0.005
+MARKET_BETA = 0.02             # Small long bias per position when signal is neutral
+TURNOVER_LIMIT = 0.30          # Max daily turnover as fraction of portfolio
